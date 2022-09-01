@@ -1,16 +1,21 @@
 // ./public/electron.js
-const path = require('path');
+const path = require('path')
+const fs = require('fs')
 
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const isDev = require('electron-is-dev');
+
+const DIR_DATA_BANS = path.join(__dirname, '../data/myData.txt')
 
 function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 900,
+    height: 700,
     webPreferences: {
-      nodeIntegration: true,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, '../public/preload.js')
     },
   });
 
@@ -46,3 +51,53 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+async function getFileDataFromMachine(){
+  return new Promise((resolve, reject) => {
+    fs.readFile(DIR_DATA_BANS, 'utf8', (err, data) => {
+      let fileData = ''
+      if(!err) fileData = data
+      resolve(data) 
+    })
+  })
+}
+
+async function saveFileData(updatedData = ''){
+  const pathFile = DIR_DATA_BANS
+  return new Promise((resolve, reject) => {
+    fs.writeFile(pathFile, updatedData, err => {
+      if(err){
+        reject(err)
+      }else{
+        resolve('file created sucessfully!')
+      }
+    })
+  })
+}
+
+const parseArrayToString = (array) => JSON.stringify(array)
+
+ipcMain.on('save-file', async(_, message) => {
+  const userToSave = {...message, date: Date.now()}
+
+  try {
+    const resDataFile = await getFileDataFromMachine()
+
+    if(!resDataFile) {
+      const dataToSave = parseArrayToString([userToSave])      
+      saveFileData(dataToSave)
+      return
+    }
+
+    const data = JSON.parse(resDataFile)
+    const userIsAlreadyBan = data.some(ban => ban.nick === userToSave.nick)
+
+    if(!userIsAlreadyBan){
+      const updatedData = parseArrayToString([...data, userToSave])
+      saveFileData(updatedData)
+    }
+        
+  } catch (error) {
+    console.log(error)
+  }
+})
