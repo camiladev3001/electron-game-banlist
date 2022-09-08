@@ -20,7 +20,7 @@
     "build": "react-scripts build",
     "dev": "concurrently -k \"npm start\" \"npm:electron\"",
     "electron": "wait-on tcp:3000 && electron .",
-    "generate-win": "npm run build && cd .. && npx electron-packager ./electron-react-template myTestApp3 --platform=win32 --arch=x64 && cd electron-react-template"
+    "generate-win": "npm run build && cd .. && npx electron-packager ./GAME-BANLIST gameBanlist2023 --platform=win32 --arch=x64 && cd electron-react-template"
   },
   "devDependencies": {
     "concurrently": "^7.3.0",

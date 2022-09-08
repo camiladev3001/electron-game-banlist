@@ -10,12 +10,12 @@ const DIR_DATA_BANS = path.join(__dirname, '../data/myData.txt')
 function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 900,
-    height: 700,
+    width: 780,
+    height: 470,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, '../public/preload.js')
+      preload: path.join(__dirname, '../public/preload.js'),
     },
   });
 
@@ -26,6 +26,9 @@ function createWindow() {
       ? 'http://localhost:3000'
       : `file://${path.join(__dirname, '../build/index.html')}`
   );
+
+  win.setMenuBarVisibility(false)
+
   // Open the DevTools.
   if (isDev) {
     win.webContents.openDevTools({ mode: 'detach' });
@@ -100,4 +103,9 @@ ipcMain.on('save-file', async(_, message) => {
   } catch (error) {
     console.log(error)
   }
+})
+
+ipcMain.on('get-file-data', (event, arg) => {
+  getFileDataFromMachine()
+    .then(res => event.reply('res-file-data', { data: JSON.parse(res) }))
 })
